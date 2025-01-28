@@ -13,12 +13,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
 
-async function initialize() {
+async function initialize(): Promise<WebAssembly.Module> {
   await init();
   return WebAssembly.compileStreaming(fetch(helloUrl));
 }
 
-async function runWasm(module: WebAssembly.Module) {
+async function runWasm(module: WebAssembly.Module): Promise<string> {
   const instance = await runWasix(module, {});
 
   const result = await instance.wait();
@@ -26,7 +26,7 @@ async function runWasm(module: WebAssembly.Module) {
 }
 
 async function main() {
-  const module = await initialize();
+  const module: WebAssembly.Module = await initialize();
   const stdout = await runWasm(module);
   console.log(stdout);
 }
