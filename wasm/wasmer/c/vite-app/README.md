@@ -23,10 +23,14 @@ export default defineConfig({
 ## Run
 
 ```sh
-$HOME/wasi-sdk-25.0-x86_64-linux/bin/clang --sysroot=$HOME/wasi-sdk-25.0-x86_64-linux/share/wasi-sysroot -o src/hello.wasm src/hello.c
+# compile the C code
+clang --target=wasm32 \
+--no-standard-libraries \
+-Wl,--export-all \
+#   Don't search for the entry point symbol (by default ``_start``).
+-Wl,--no-entry \
+ -o src/hello.wasm src/hello.c
 
-emcc src/hello.c -o src/hello.wasm -s STANDALONE_WASM=1
-
-# npm run dev
-$HOME/wasi-sdk-25.0-x86_64-linux/bin/clang --sysroot=$HOME/wasi-sdk-25.0-x86_64-linux/share/wasi-sysroot -o src/hello.wasm src/hello.c && npm run build && npm run preview
+#  Run Vite
+npm run build && npm run preview
 ```
