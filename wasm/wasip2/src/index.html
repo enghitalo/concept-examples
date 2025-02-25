@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<script type="importmap">
+  {
+    "imports": {
+      "@bytecodealliance/preview2-shim/cli": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/cli.js",
+      "@bytecodealliance/preview2-shim/clocks": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/clocks.js",
+      "@bytecodealliance/preview2-shim/filesystem": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/filesystem.js",
+      "@bytecodealliance/preview2-shim/http": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/http.js",
+      "@bytecodealliance/preview2-shim/io": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/io.js",
+      "@bytecodealliance/preview2-shim/random": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/random.js",
+      "@bytecodealliance/preview2-shim/sockets": "./node_modules/@bytecodealliance/preview2-shim/lib/browser-async/sockets.js"
+    }
+  }
+ </script>
+<html>
+  <head>
+    <title>WebAssembly Interactive WASI Preview 2 Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      section {
+        margin-bottom: 20px;
+      }
+      button {
+        margin-left: 10px;
+      }
+      #output {
+        font-weight: bold;
+      }
+      #sum-result {
+        color: green;
+      }
+      #sorted-list {
+        list-style-type: decimal;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>Print Hello World</h2>
+      <button id="print-btn">Print Hello</button>
+      <p id="output"></p>
+    </section>
+    <section>
+      <h2>Calculate Sum</h2>
+      <input type="number" id="num1" placeholder="Enter first number" />
+      <input type="number" id="num2" placeholder="Enter second number" />
+      <button id="sum-btn">Calculate</button>
+      <p id="sum-result"></p>
+    </section>
+    <section>
+      <h2>Array Sorting</h2>
+      <input
+        type="text"
+        id="array-input"
+        placeholder="Enter numbers (e.g., 4,2,3,1)"
+      />
+      <button id="sort-btn">Sort</button>
+      <ul id="sorted-list"></ul>
+    </section>
+    <script type="module" src="bundle.js"></script>
+  </body>
+</html>
