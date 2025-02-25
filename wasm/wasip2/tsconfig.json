@@ -4,7 +4,7 @@
       "module": "ESNext",
       "strict": true,
       "esModuleInterop": true,
-      "moduleResolution": "node",
+      "moduleResolution": "bundler",
       "outDir": "dist",
       "sourceMap": true,
       "lib": ["ESNext", "DOM"],

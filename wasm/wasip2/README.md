@@ -7,7 +7,6 @@
 ├── package-lock.json
 ├── README.md
 ├── rollup.config.js
-├── setup_project.sh
 ├── src
 │   ├── code.c
 │   ├── index.html
@@ -20,8 +19,8 @@ WASI_SDK_PATH="/opt/wasi-sdk"
 /opt/wasi-sdk/bin/clang --target=wasm32-wasip2 -Wl,--export-all -Wl,--no-entry --sysroot=$WASI_SDK_PATH/share/wasi-sysroot src/code.c -o dist/code.wasm
 
 
-/opt/wasi-sdk/bin/clang     \
-    -O0 -z stack-size=4096 -Wl,--initial-memory=65536 \
+/opt/wasi-sdk/bin/clang \
+    -O0 -z stack-size=4096 -Wl,--initial-memory=1048576 \
     -Wl,--no-entry -nostdlib \
     -Wl,--strip-all \
     -Wl,--export-all \
