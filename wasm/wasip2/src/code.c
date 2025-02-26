@@ -3,7 +3,7 @@
 
 __attribute__((export_name("print_hello_world")))
 void print_hello_world() {
-    printf("Hello, World!\\n");
+    printf("Hello, World!\n");
 }
 
 __attribute__((export_name("sum")))
