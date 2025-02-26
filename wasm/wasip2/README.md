@@ -20,10 +20,9 @@ WASI_SDK_PATH="/opt/wasi-sdk"
 
 
 /opt/wasi-sdk/bin/clang \
-    -O0 -z stack-size=4096 -Wl,--initial-memory=1048576 \
+    -O0 -z stack-size=4096 -Wl,--initial-memory=65536 \
     -Wl,--no-entry -nostdlib \
     -Wl,--strip-all \
-    -Wl,--export-all \
     -Wl,--allow-undefined \
     -o dist/code.wasm src/code.c
 ```
