@@ -23,11 +23,15 @@ async function initializeApp() {
       abort(_msg: any, _file: any, line: any, column: any) {
         console.error("abort called at index.ts:" + line + ":" + column);
       },
-      printf: (index: number) => {
-        const str = new TextDecoder().decode(
-          new Uint8Array(instance.exports.memory.buffer, index)
+      printf: (ptr: number) => {
+        const length = new Uint8Array(
+          instance.exports.memory.buffer,
+          ptr
+        ).findIndex((byte) => byte === 0);
+        const value = new TextDecoder().decode(
+          new Uint8Array(instance.exports.memory.buffer, ptr, length)
         );
-        console.log(str);
+        console.log(value);
       },
       qsort: (ptr: number, len: number, size: number, compare_fn: number) => {
         const arr = new Int32Array(
