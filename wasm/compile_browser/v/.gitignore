@@ -1,4 +1,6 @@
 wasi-sdk-29.0-x86_64-linux
 wasi-libc
 main.wasm
+main.c
+
 

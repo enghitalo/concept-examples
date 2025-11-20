@@ -27,37 +27,114 @@ async function loadWasm() {
   // We'll return exports after instantiation. The wasiImport must not reference wasmExports
   // during creation because imports are read at instantiate time.
   const wasiImport = Object.create(null);
-  wasiImport.args_get = () => 0;
-  wasiImport.args_sizes_get = () => 0;
-  wasiImport.environ_get = () => 0;
-  wasiImport.environ_sizes_get = () => 0;
-  wasiImport.fd_close = () => 0;
-  wasiImport.fd_fdstat_get = (fd, stat) => {
-    // minimal behavior: succeed for std fds, fail otherwise
-    if (fd === 0 || fd === 1 || fd === 2) return 0;
-    return 8; // EBADF
+
+  // https://wasix.org/docs/api-reference
+
+  // minimal WASI errno constants used below
+  const WASI = {
+    SUCCESS: 0,
+    EBADF: 8,
+    EFAULT: 21,
+    EIO: 28,
+    ENOSYS: 52,
   };
-  wasiImport.fd_seek = () => 8; // ESPIPE
-  // fd_write will use the module memory at runtime — we capture wasmExports at time of use.
+
+  // args/env: advertise zero args/env and noop the getters
+  wasiImport.args_sizes_get = (argcPtr, argvBufSizePtr) => {
+    // report zero args / zero total size
+    if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+    try {
+      const mem = wasmExports.memory.buffer;
+      const dv = new DataView(mem);
+      if (argcPtr + 4 <= mem.byteLength) dv.setUint32(argcPtr, 0, true);
+      if (argvBufSizePtr + 4 <= mem.byteLength)
+        dv.setUint32(argvBufSizePtr, 0, true);
+      return WASI.SUCCESS;
+    } catch (e) {
+      return WASI.EIO;
+    }
+  };
+  wasiImport.args_get = (argv, argv_buf) => {
+    // no args to write; succeed as long as memory exists
+    if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+    return WASI.SUCCESS;
+  };
+
+  wasiImport.environ_sizes_get = (environCountPtr, environBufSizePtr) => {
+    // no environ vars
+    if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+    try {
+      const mem = wasmExports.memory.buffer;
+      const dv = new DataView(mem);
+      if (environCountPtr + 4 <= mem.byteLength)
+        dv.setUint32(environCountPtr, 0, true);
+      if (environBufSizePtr + 4 <= mem.byteLength)
+        dv.setUint32(environBufSizePtr, 0, true);
+      return WASI.SUCCESS;
+    } catch (e) {
+      return WASI.EIO;
+    }
+  };
+  wasiImport.environ_get = (environ, environBuf) => {
+    // noop: no environment variables
+    if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+    return WASI.SUCCESS;
+  };
+
+  // clocks
+  wasiImport.clock_res_get = (..._args) => WASI.SUCCESS;
+  wasiImport.clock_time_get = (..._args) => WASI.SUCCESS;
+
+  // fd helpers / metadata
+  wasiImport.fd_close = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_fdstat_get = (fd, stat) => {
+    if (fd === 0 || fd === 1 || fd === 2) return WASI.SUCCESS;
+    return WASI.EBADF;
+  };
+  wasiImport.fd_fdstat_set_flags = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_fdstat_set_rights = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_prestat_get = (fd, prestatPtr) => {
+    // no preopened dirs; only std fds are valid
+    if (fd === 0 || fd === 1 || fd === 2) return WASI.SUCCESS;
+    return WASI.EBADF;
+  };
+  wasiImport.fd_prestat_dir_name = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_filestat_get = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_filestat_set_size = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_filestat_set_times = (..._args) => WASI.SUCCESS;
+
+  // I/O operations
+  wasiImport.fd_seek = (..._args) => WASI.EIO; // not seekable by default
+  wasiImport.fd_read = (fd, iovs, iovs_len, nread) => {
+    // minimal: stdin (fd=0) reads nothing; report 0 bytes read
+    try {
+      if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+      if (nread + 4 > wasmExports.memory.buffer.byteLength) return WASI.EFAULT;
+      const dv = new DataView(wasmExports.memory.buffer);
+      dv.setUint32(nread, 0, true);
+      return WASI.SUCCESS;
+    } catch (e) {
+      return WASI.EIO;
+    }
+  };
+
+  // fd_write writes to console; uses wasm memory at runtime
   wasiImport.fd_write = (fd, iovs, iovs_len, nwritten) => {
     try {
-      // wasmExports will be set after instantiation; if it's not, indicate error
-      if (!wasmExports || !wasmExports.memory) return 8;
+      if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
       const memBuf = wasmExports.memory.buffer;
-      if (!(memBuf instanceof ArrayBuffer)) return 8;
+      if (!(memBuf instanceof ArrayBuffer)) return WASI.ENOSYS;
       const view = new DataView(memBuf);
       let total = 0;
 
       // Each iovec is (ptr: u32, len: u32) => 8 bytes on wasm32
       for (let i = 0; i < iovs_len; i++) {
         const off = iovs + i * 8;
-        // Validate the iovec pointer region is within memory
-        if (off + 8 > memBuf.byteLength) return 21; // EFAULT
+        if (off + 8 > memBuf.byteLength) return WASI.EFAULT;
         const ptr = view.getUint32(off, true);
         const len = view.getUint32(off + 4, true);
-        if (ptr + len > memBuf.byteLength) return 21; // EFAULT
+        if (ptr + len > memBuf.byteLength) return WASI.EFAULT;
 
-        // Avoid giant prints — cap len to sensible limit
         const safeLen = Math.min(len, 10_000_000);
         const bytes = new Uint8Array(memBuf, ptr, safeLen);
         const text = textDecoder.decode(bytes);
@@ -72,19 +149,78 @@ async function loadWasm() {
         total += safeLen;
       }
 
-      // write total back (validate pointer)
-      if (nwritten + 4 > memBuf.byteLength) return 21;
+      if (nwritten + 4 > memBuf.byteLength) return WASI.EFAULT;
       view.setUint32(nwritten, total, true);
-      return 0;
+      return WASI.SUCCESS;
     } catch (e) {
       console.error("fd_write error:", e);
-      return 28; // EIO / generic non-zero
+      return WASI.EIO;
     }
   };
+
+  wasiImport.fd_readdir = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_renumber = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_datasync = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_advise = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_allocate = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_pread = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_pwrite = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_tell = (..._args) => WASI.SUCCESS;
+  wasiImport.fd_sync = (..._args) => WASI.SUCCESS;
+
+  // filesystem/path stubs — no real filesystem access; return ENOSYS or SUCCESS for no-op
+  wasiImport.path_create_directory = (..._args) => WASI.ENOSYS;
+  wasiImport.path_filestat_get = (..._args) => WASI.ENOSYS;
+  wasiImport.path_filestat_set_times = (..._args) => WASI.ENOSYS;
+  wasiImport.path_open = (..._args) => WASI.ENOSYS;
+  wasiImport.path_unlink_file = (..._args) => WASI.ENOSYS;
+  wasiImport.path_readlink = (..._args) => WASI.ENOSYS;
+  wasiImport.path_remove_directory = (..._args) => WASI.ENOSYS;
+  wasiImport.path_rename = (..._args) => WASI.ENOSYS;
+  wasiImport.path_symlink = (..._args) => WASI.ENOSYS;
+  wasiImport.path_link = (..._args) => WASI.ENOSYS;
+
+  // polling / event loop
+  wasiImport.poll_oneoff = (..._args) => WASI.ENOSYS;
+
+  // process control
   wasiImport.proc_exit = (code) => {
-    // Don't kill the page — throw an error instead to fail fast in JS
+    // prevent killing the host; throw to propagate failure
     throw new Error("WASI proc_exit called with code: " + code);
   };
+  wasiImport.proc_raise = (..._args) => WASI.ENOSYS;
+
+  // randomness
+  wasiImport.random_get = (bufPtr, bufLen) => {
+    try {
+      if (!wasmExports || !wasmExports.memory) return WASI.ENOSYS;
+      const mem = wasmExports.memory.buffer;
+      if (bufPtr < 0 || bufLen < 0 || bufPtr + bufLen > mem.byteLength)
+        return WASI.EFAULT;
+      const slice = new Uint8Array(mem, bufPtr, bufLen);
+      if (
+        typeof crypto !== "undefined" &&
+        typeof crypto.getRandomValues === "function"
+      ) {
+        crypto.getRandomValues(slice);
+        return WASI.SUCCESS;
+      }
+      // fallback: use Math.random (not cryptographically secure)
+      for (let i = 0; i < bufLen; i++) slice[i] = (Math.random() * 256) | 0;
+      return WASI.SUCCESS;
+    } catch (e) {
+      return WASI.EIO;
+    }
+  };
+
+  // scheduling
+  wasiImport.sched_yield = (..._args) => WASI.SUCCESS;
+
+  // socket stubs — not supported in this shim
+  wasiImport.sock_accept = (..._args) => WASI.ENOSYS;
+  wasiImport.sock_recv = (..._args) => WASI.ENOSYS;
+  wasiImport.sock_send = (..._args) => WASI.ENOSYS;
+  wasiImport.sock_shutdown = (..._args) => WASI.ENOSYS;
 
   let wasmExports = null;
 
