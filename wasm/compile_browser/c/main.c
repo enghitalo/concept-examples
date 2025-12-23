@@ -18,6 +18,13 @@ struct array {
     int element_size;
 };
 
+typedef unsigned char u8;
+
+struct string {
+	u8* str;
+	int len;
+};
+
 __attribute__((export_name("malloc")))
 void* builtin___v_malloc(size_t size) {
 	return malloc(size);
