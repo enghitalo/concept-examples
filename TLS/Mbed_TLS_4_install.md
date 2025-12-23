@@ -66,6 +66,7 @@ brew install cmake git python3
 ```bash
 # Clone the repository
 git clone https://github.com/Mbed-TLS/mbedtls.git
+git submodule update --init --recursive
 cd mbedtls
 
 # Checkout version 4.0.0 (or latest stable)
@@ -174,6 +175,7 @@ WORKDIR /app
 
 # Clone and build Mbed TLS
 RUN git clone https://github.com/Mbed-TLS/mbedtls.git && \
+    git submodule update --init --recursive && \
     cd mbedtls && \
     git checkout mbedtls-4.0.0 && \
     mkdir build && cd build && \
@@ -348,6 +350,7 @@ fi
 # Clone and build
 cd /tmp
 git clone https://github.com/Mbed-TLS/mbedtls.git
+git submodule update --init --recursive
 cd mbedtls
 git checkout mbedtls-4.0.0
 
