@@ -369,10 +369,16 @@ make test
 
 # Install
 sudo make install
+
+# Update linker cache
 sudo ldconfig
 
 echo "Installation complete!"
 echo "Mbed TLS 4.0.0 with TLS 1.3 support has been installed."
+
+# check libs
+ldd ./TLS/server 
+sudo find / -name "libmbedtls.so.22" 2>/dev/null
 ```
 
 Make it executable and run:
