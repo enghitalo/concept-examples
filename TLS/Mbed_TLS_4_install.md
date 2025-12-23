@@ -127,12 +127,6 @@ mkdir build && cd build
 # Enable TLS 1.3 and required features
 cmake .. \
     -DENABLE_PROGRAMS=On \
-    -DMBEDTLS_SSL_PROTO_TLS1_3=On \
-    -DMBEDTLS_PSA_CRYPTO_C=On \
-    -DMBEDTLS_CHACHA20_C=On \
-    -DMBEDTLS_POLY1305_C=On \
-    -DMBEDTLS_SSL_KEEP_PEER_CERTIFICATE=On \
-    -DMBEDTLS_X509_CRT_PARSE_C=On \
     -DUSE_SHARED_MBEDTLS_LIBRARY=On
 
 make -j$(nproc)
