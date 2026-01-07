@@ -15,7 +15,10 @@ mut:
 fn new_connection_pool(size int) &ConnectionPool {
 	mut pool := ConnectionPool{}
 	for i in 0 .. size {
-		pool.connections << Connection{id: i, in_use: false}
+		pool.connections << Connection{
+			id:     i
+			in_use: false
+		}
 	}
 	return &pool
 }
@@ -27,7 +30,7 @@ fn (mut pool ConnectionPool) acquire_connection() !&Connection {
 	for mut conn in pool.connections {
 		if !conn.in_use {
 			conn.in_use = true
-			println('Connection $conn.id acquired.')
+			println('Connection ${conn.id} acquired.')
 			return &conn
 		}
 	}
@@ -38,13 +41,13 @@ fn (mut pool ConnectionPool) release_connection(conn &Connection) {
 	pool.mutex.@lock()
 	defer { pool.mutex.unlock() }
 	conn.in_use = false
-	println('Connection $conn.id released.')
+	println('Connection ${conn.id} released.')
 }
 
 fn use_connection(mut pool ConnectionPool) {
-	mut conn := pool.acquire_connection() or { 
+	mut conn := pool.acquire_connection() or {
 		println(err)
-		return 
+		return
 	}
 	// Simula o uso da conexão
 	println('Using connection ${conn.id}')

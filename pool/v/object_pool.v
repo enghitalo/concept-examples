@@ -13,7 +13,9 @@ fn new_object_pool(size int) &ObjectPool {
 		pool: []&Object{cap: size}
 	}
 	for i in 0 .. size {
-		obj_pool.pool << &Object{id: i}
+		obj_pool.pool << &Object{
+			id: i
+		}
 	}
 	return &obj_pool
 }
@@ -29,17 +31,19 @@ fn (mut pool ObjectPool) acquire() !&Object {
 }
 
 fn (mut pool ObjectPool) release(obj &Object) {
-	unsafe { obj.id = -1 }
+	unsafe {
+		obj.id = -1
+	}
 }
 
 fn main() {
 	mut pool := new_object_pool(5)
 	mut obj := pool.acquire() or { panic(err) }
-	println('Acquired object with ID: $obj.id')
+	println('Acquired object with ID: ${obj.id}')
 
 	pool.release(obj)
-	println('Released object with ID: $obj.id')
+	println('Released object with ID: ${obj.id}')
 
 	obj = pool.acquire() or { panic(err) }
-	println('Acquired object with ID: $obj.id')
+	println('Acquired object with ID: ${obj.id}')
 }

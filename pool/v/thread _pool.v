@@ -7,9 +7,9 @@ mut:
 
 struct ThreadPool {
 mut:
-	tasks    []Task
-	workers  []thread
-	mutex    sync.Mutex
+	tasks   []Task
+	workers []thread
+	mutex   sync.Mutex
 }
 
 fn worker(mut pool ThreadPool, id int) {
@@ -23,7 +23,7 @@ fn worker(mut pool ThreadPool, id int) {
 			break
 		}
 		pool.mutex.unlock()
-		println('Worker $id processing task $task.id')
+		println('Worker ${id} processing task ${task.id}')
 	}
 }
 
@@ -52,7 +52,7 @@ fn (mut pool ThreadPool) wait() {
 fn main() {
 	mut pool := new_thread_pool(3)
 	for i in 0 .. 10 {
-		pool.add_task(Task{id: i})
+		pool.add_task(Task{ id: i })
 	}
 	pool.wait()
 }

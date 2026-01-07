@@ -1,8 +1,6 @@
 import strings
 
-const (
-	pool_size = 5
-)
+const pool_size = 5
 
 struct MyObject {
 	id   int
@@ -53,8 +51,8 @@ fn main() {
 	obj2.id = 2
 	obj2.data = 'Objeto 2'
 
-	println('Obj1: ID=$obj1.id, Data=$obj1.data')
-	println('Obj2: ID=$obj2.id, Data=$obj2.data')
+	println('Obj1: ID=${obj1.id}, Data=${obj1.data}')
+	println('Obj2: ID=${obj2.id}, Data=${obj2.data}')
 
 	// Libera objetos para reutilização
 	release_object(mut pool, obj1)
