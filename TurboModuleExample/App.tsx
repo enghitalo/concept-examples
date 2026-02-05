@@ -156,7 +156,7 @@ function App() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.title}>Turbo Native Modules</Text>
           <Text style={styles.subtitle}>
-            React Native {Platform.Version ? `(${Platform.OS})` : ''}
+            React Native ({Platform.OS})
           </Text>
 
           {/* Biometrics Section */}
@@ -254,6 +254,9 @@ function App() {
             </Text>
             <Text style={styles.infoText}>
               - Android: Uses BiometricPrompt and NotificationManager APIs
+            </Text>
+            <Text style={styles.infoText}>
+              - Web: Uses Web Authentication and Notifications APIs
             </Text>
           </View>
         </ScrollView>
