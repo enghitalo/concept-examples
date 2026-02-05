@@ -7,14 +7,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.module.annotations.ReactModule
+import com.turbomoduleexample.NativeBiometricsSpec
 
-@ReactModule(name = NativeBiometricsModule.NAME)
 class NativeBiometricsModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext) {
+    NativeBiometricsSpec(reactContext) {
 
     companion object {
         const val NAME = "NativeBiometrics"
@@ -44,8 +41,7 @@ class NativeBiometricsModule(reactContext: ReactApplicationContext) :
         return "none"
     }
 
-    @ReactMethod
-    fun isAvailable(promise: Promise) {
+    override fun isAvailable(promise: Promise) {
         try {
             val biometricManager = BiometricManager.from(reactApplicationContext)
             val canAuthenticate = biometricManager.canAuthenticate(
@@ -58,8 +54,7 @@ class NativeBiometricsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun getBiometricType(promise: Promise) {
+    override fun getBiometricType(promise: Promise) {
         try {
             promise.resolve(getBiometricTypeFromAuthenticators())
         } catch (e: Exception) {
@@ -67,8 +62,7 @@ class NativeBiometricsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun authenticate(reason: String, promise: Promise) {
+    override fun authenticate(reason: String, promise: Promise) {
         val activity = reactApplicationContext.currentActivity
 
         if (activity == null) {

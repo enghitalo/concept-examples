@@ -12,15 +12,12 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.module.annotations.ReactModule
+import com.turbomoduleexample.NativeNotificationsSpec
 import java.util.concurrent.atomic.AtomicInteger
 
-@ReactModule(name = NativeNotificationsModule.NAME)
 class NativeNotificationsModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext) {
+    NativeNotificationsSpec(reactContext) {
 
     companion object {
         const val NAME = "NativeNotifications"
@@ -67,8 +64,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun requestPermission(promise: Promise) {
+    override fun requestPermission(promise: Promise) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val activity = reactApplicationContext.currentActivity
             if (activity == null) {
@@ -97,8 +93,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun getPermissionStatus(promise: Promise) {
+    override fun getPermissionStatus(promise: Promise) {
         val status = when {
             hasNotificationPermission() -> "granted"
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
@@ -118,8 +113,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
         promise.resolve(status)
     }
 
-    @ReactMethod
-    fun showNotification(options: ReadableMap, promise: Promise) {
+    override fun showNotification(options: ReadableMap, promise: Promise) {
         try {
             val title = options.getString("title") ?: run {
                 promise.resolve(false)
@@ -165,8 +159,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    @ReactMethod
-    fun createChannel(channelId: String, channelName: String, description: String, promise: Promise) {
+    override fun createChannel(channelId: String, channelName: String, description: String, promise: Promise) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
