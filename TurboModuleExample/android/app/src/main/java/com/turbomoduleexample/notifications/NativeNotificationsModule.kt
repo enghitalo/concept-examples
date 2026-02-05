@@ -70,7 +70,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun requestPermission(promise: Promise) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val activity = currentActivity
+            val activity = reactApplicationContext.currentActivity
             if (activity == null) {
                 promise.resolve("denied")
                 return
@@ -102,7 +102,7 @@ class NativeNotificationsModule(reactContext: ReactApplicationContext) :
         val status = when {
             hasNotificationPermission() -> "granted"
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                if (currentActivity?.let {
+                if (reactApplicationContext.currentActivity?.let {
                     ActivityCompat.shouldShowRequestPermissionRationale(
                         it,
                         Manifest.permission.POST_NOTIFICATIONS

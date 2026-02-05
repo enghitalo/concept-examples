@@ -69,7 +69,7 @@ class NativeBiometricsModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun authenticate(reason: String, promise: Promise) {
-        val activity = currentActivity
+        val activity = reactApplicationContext.currentActivity
 
         if (activity == null) {
             val result = WritableNativeMap().apply {
